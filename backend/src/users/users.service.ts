@@ -79,4 +79,20 @@ async updateUser(id: string, updateUserDto: UpdateUserDto) {
 
   return userWithoutPassword;
 }
+
+async deleteUser(id: string) {
+  if (!Types.ObjectId.isValid(id)) {
+    throw new BadRequestException('Invalid user ID');
+  }
+
+  const user = await this.userModel.findByIdAndDelete(id).exec();
+
+  if (!user) {
+    throw new NotFoundException('User not found');
+  }
+
+  return {
+    message: 'User deleted successfully',
+  };
+}
 }
