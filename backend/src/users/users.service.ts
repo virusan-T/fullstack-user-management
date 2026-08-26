@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException,BadRequestException} from '@nestjs/common';
+import { Injectable, NotFoundException,BadRequestException,ConflictException} from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model,Types} from 'mongoose';
@@ -26,11 +26,20 @@ export class UsersService {
       password: hashedPassword,
     });
 
+    try {
     const savedUser = await user.save();
 
-    const { password, ...userWithoutPassword } = savedUser.toObject();
+    const { password, ...userWithoutPassword } =
+      savedUser.toObject();
 
     return userWithoutPassword;
+  } catch (error) {
+    if (error?.code === 11000) {
+      throw new ConflictException('Email already exists');
+    }
+
+    throw error;
+  }
   }
   async findAllUsers() {
   return this.userModel.find().exec();
@@ -73,11 +82,20 @@ async updateUser(id: string, updateUserDto: UpdateUserDto) {
     user.password = await bcrypt.hash(updateUserDto.password, 10);
   }
 
-  const updatedUser = await user.save();
+  try {
+    const updatedUser = await user.save();
 
-  const { password, ...userWithoutPassword } = updatedUser.toObject();
+    const { password, ...userWithoutPassword } =
+      updatedUser.toObject();
 
-  return userWithoutPassword;
+    return userWithoutPassword;
+  } catch (error) {
+    if (error?.code === 11000) {
+      throw new ConflictException('Email already exists');
+    }
+
+    throw error;
+  }
 }
 
 async deleteUser(id: string) {
