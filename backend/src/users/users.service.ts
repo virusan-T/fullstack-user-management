@@ -1,7 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException,BadRequestException} from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model,Types} from 'mongoose';
 
 import { User, UserDocument } from './schemas/user.schema';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -31,4 +31,21 @@ export class UsersService {
 
     return userWithoutPassword;
   }
+  async findAllUsers() {
+  return this.userModel.find().exec();
+}
+
+async findUserById(id: string) {
+  if (!Types.ObjectId.isValid(id)) {
+    throw new BadRequestException('Invalid user ID');
+  }
+
+  const user = await this.userModel.findById(id).exec();
+
+  if (!user) {
+    throw new NotFoundException('User not found');
+  }
+
+  return user;
+}
 }
