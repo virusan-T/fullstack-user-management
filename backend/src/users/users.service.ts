@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException,BadRequestException,ConflictException} from '@nestjs/common';
+import { Injectable, NotFoundException,BadRequestException,ConflictException,ForbiddenException} from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model,Types} from 'mongoose';
@@ -59,7 +59,15 @@ async findUserById(id: string) {
   return user;
 }
 
-async updateUser(id: string, updateUserDto: UpdateUserDto) {
+async updateUser(id: string, updateUserDto: UpdateUserDto,currentUserId: string,) 
+{
+  if (id !== currentUserId) {
+    throw new ForbiddenException(
+      'You can only update your own data',
+    );
+  }
+
+{
   if (!Types.ObjectId.isValid(id)) {
     throw new BadRequestException('Invalid user ID');
   }
@@ -96,9 +104,15 @@ async updateUser(id: string, updateUserDto: UpdateUserDto) {
 
     throw error;
   }
-}
+}}
 
-async deleteUser(id: string) {
+async deleteUser(id: string,currentUserId: string,) {
+  if (id !== currentUserId) {
+    throw new ForbiddenException(
+      'You can only delete your own data',
+    );
+  }
+
   if (!Types.ObjectId.isValid(id)) {
     throw new BadRequestException('Invalid user ID');
   }
@@ -112,5 +126,12 @@ async deleteUser(id: string) {
   return {
     message: 'User deleted successfully',
   };
+}
+
+async findUserForLogin(email: string) {
+  return this.userModel
+    .findOne({ email })
+    .select('+password')
+    .exec();
 }
 }
