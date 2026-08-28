@@ -1,4 +1,5 @@
-import { Body, Controller, Post,Get ,Param,Patch,Delete,Request} from '@nestjs/common';
+import { Body, Controller, Post,Get ,Param,Patch,Delete,Res,Request} from '@nestjs/common';
+import type { Response } from 'express';
 import { ApiParam } from '@nestjs/swagger';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -129,13 +130,28 @@ updateUser(
   description: 'User not found',
 })
 @Delete(':id')
-removeUser(
+async removeUser(
   @Param('id') id: string,
   @Request() req,
+  @Res({ passthrough: true }) response: Response,
 ) {
-  return this.usersService.deleteUser(
+  const result = await this.usersService.deleteUser(
     id,
     req.user.userId,
   );
+
+  // Clear authentication cookies after
+  // successfully deleting the logged-in user's account.
+  response.clearCookie('access_token', {
+    httpOnly: true,
+    sameSite: 'lax',
+  });
+
+  response.clearCookie('refresh_token', {
+    httpOnly: true,
+    sameSite: 'lax',
+  });
+
+  return result;
 }
 }

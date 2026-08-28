@@ -134,4 +134,25 @@ async findUserForLogin(email: string) {
     .select('+password')
     .exec();
 }
+
+async updateRefreshToken(
+  userId: string,
+  hashedRefreshToken: string | null,
+) {
+  return this.userModel.findByIdAndUpdate(
+    userId,
+    {
+      refreshToken: hashedRefreshToken,
+    },
+    { new: true },
+  );
+}
+
+async findUserWithRefreshToken(userId: string) {
+  return this.userModel
+    .findById(userId)
+    .select('+refreshToken')
+    .exec();
+}
+
 }
