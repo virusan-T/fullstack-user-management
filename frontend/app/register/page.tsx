@@ -1,9 +1,28 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+
+function UserIcon() {
+  return (
+    <svg
+      className="h-4 w-4 text-slate-400"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+    >
+      <circle cx="12" cy="8" r="3.25" />
+      <path
+        strokeLinecap="round"
+        d="M5 19.5c0-3.59 3.13-6.5 7-6.5s7 2.91 7 6.5"
+      />
+    </svg>
+  );
+}
 
 function MailIcon() {
   return (
@@ -39,31 +58,43 @@ function LockIcon() {
   );
 }
 
-export default function LoginPage() {
+export default function RegisterPage() {
   const router = useRouter();
 
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = async (e: FormEvent) => {
-    e.preventDefault();
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
 
-    setLoading(true);
     setError("");
 
+    if (!name || !email || !password) {
+      setError("Please fill in all fields.");
+      return;
+    }
+
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters.");
+      return;
+    }
+
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
+      setLoading(true);
+
+      const response = await fetch(`${API_URL}/users`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        credentials: "include",
         body: JSON.stringify({
-          email: email.trim(),
+          name,
+          email,
           password,
         }),
       });
@@ -71,29 +102,28 @@ export default function LoginPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || "Invalid email or password");
+        throw new Error(data.message || "Registration failed");
       }
 
-      // JWT tokens are stored in HTTP-only cookies
-      // No localStorage is required.
-
-      router.replace("/dashboard");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Login failed");
+      router.push("/");
+    } catch (error) {
+      setError(
+        error instanceof Error ? error.message : "Something went wrong",
+      );
     } finally {
       setLoading(false);
     }
-  };
+  }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-gray-400 px-6">
-      <div className="w-full max-w-sm rounded-3xl border border-slate-200 bg-gray-50 p-8 shadow-sm">
+    <main className="flex min-h-screen items-center justify-center bg-indigo-50 px-6">
+      <div className="w-full max-w-sm rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
         <div className="mb-8">
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-900 ">
-            Welcome back
+          <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
+            Create account
           </h1>
           <p className="mt-1.5 text-sm text-slate-500">
-            Sign in to continue to your dashboard
+            Register to get started with your dashboard
           </p>
         </div>
 
@@ -107,7 +137,28 @@ export default function LoginPage() {
           </div>
         )}
 
-        <form onSubmit={handleLogin} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label
+              htmlFor="name"
+              className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-slate-500"
+            >
+              Name
+            </label>
+            <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 shadow-sm transition focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-100">
+              <UserIcon />
+              <input
+                id="name"
+                type="text"
+                value={name}
+                onChange={(event) => setName(event.target.value)}
+                disabled={loading}
+                placeholder="Enter your name"
+                className="w-full border-none bg-transparent text-sm text-slate-900 outline-none placeholder:text-slate-400 disabled:opacity-50"
+              />
+            </div>
+          </div>
+
           <div>
             <label
               htmlFor="email"
@@ -120,12 +171,10 @@ export default function LoginPage() {
               <input
                 id="email"
                 type="email"
-                placeholder="you@company.com"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                autoComplete="email"
+                onChange={(event) => setEmail(event.target.value)}
                 disabled={loading}
+                placeholder="you@company.com"
                 className="w-full border-none bg-transparent text-sm text-slate-900 outline-none placeholder:text-slate-400 disabled:opacity-50"
               />
             </div>
@@ -143,12 +192,10 @@ export default function LoginPage() {
               <input
                 id="password"
                 type={showPassword ? "text" : "password"}
-                placeholder="••••••••"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                autoComplete="current-password"
+                onChange={(event) => setPassword(event.target.value)}
                 disabled={loading}
+                placeholder="At least 8 characters"
                 className="w-full border-none bg-transparent text-sm text-slate-900 outline-none placeholder:text-slate-400 disabled:opacity-50"
               />
               <button
@@ -170,25 +217,24 @@ export default function LoginPage() {
             {loading ? (
               <span className="flex items-center justify-center gap-2">
                 <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/40 border-t-white" />
-                Logging in…
+                Creating account…
               </span>
             ) : (
-              "Log in"
+              "Register"
             )}
           </button>
         </form>
 
         <p className="mt-8 text-center text-sm text-slate-500">
-          Don&apos;t have an account?{" "}
+          Already have an account?{" "}
           <Link
-            href="/register"
+            href="/"
             className="font-medium text-indigo-600 hover:text-indigo-700"
           >
-            Create one
+            Login
           </Link>
         </p>
       </div>
     </main>
   );
 }
-

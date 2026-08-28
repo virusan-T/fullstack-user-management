@@ -4,6 +4,7 @@ import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
 function MailIcon() {
   return (
@@ -56,7 +57,7 @@ export default function LoginPage() {
     setError("");
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
+      const response = await fetch(`${API_URL}/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -86,10 +87,10 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-gray-400 px-6">
-      <div className="w-full max-w-sm rounded-3xl border border-slate-200 bg-gray-50 p-8 shadow-sm">
+    <main className="flex min-h-screen items-center justify-center bg-slate-50 px-6">
+      <div className="w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
         <div className="mb-8">
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-900 ">
+          <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
             Welcome back
           </h1>
           <p className="mt-1.5 text-sm text-slate-500">
