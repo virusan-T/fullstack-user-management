@@ -105,7 +105,7 @@ export default function DashboardPage() {
       });
 
       if (!response.ok) {
-        router.push("/login");
+        router.push("/");
         return;
       }
 
@@ -319,7 +319,7 @@ export default function DashboardPage() {
 
       // Account deleted.
       // Go back to login page.
-      router.push("/login");
+      router.push("/");
     } catch (err) {
       console.error(err);
 
