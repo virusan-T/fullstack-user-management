@@ -8,10 +8,10 @@ A full-stack user management application with user registration, JWT-based authe
 [https://fullstack-user-management-ten.vercel.app](https://fullstack-user-management-ten.vercel.app)
 
 **Backend:**
-Add your Render backend URL here.
+[https://fullstack-user-management-2dbc.onrender.com](https://fullstack-user-management-2dbc.onrender.com)
 
 **GitHub:**
-Add your GitHub repository URL here.
+[https://github.com/virusan-T/fullstack-user-management](https://github.com/virusan-T/fullstack-user-management)
 
 ---
 
