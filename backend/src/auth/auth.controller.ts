@@ -14,14 +14,12 @@ import {
   ApiBearerAuth,
   ApiOkResponse,
   ApiOperation,
-  ApiResponse,
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login-dto';
-import { LoginResponseDto } from './dto/LoginResponseDto';
 import { JwtAuthGuard } from './guards/jwt-auth/jwt-auth.guard';
 
 @ApiTags('Authentication')
@@ -53,17 +51,19 @@ export class AuthController {
   ) {
     const result = await this.authService.login(loginDto);
 
+    const isProduction = process.env.NODE_ENV === 'production';
+
     response.cookie('access_token', result.access_token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'none',
+      secure: isProduction,
+      sameSite: isProduction ? 'none' : 'lax',
       maxAge: 15 * 60 * 1000,
     });
 
     response.cookie('refresh_token', result.refresh_token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'none',
+      secure: isProduction,
+      sameSite: isProduction ? 'none' : 'lax',
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -98,17 +98,19 @@ export class AuthController {
     const result =
       await this.authService.refreshToken(refreshToken);
 
+    const isProduction = process.env.NODE_ENV === 'production';
+
     response.cookie('access_token', result.access_token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'none',
+      secure: isProduction,
+      sameSite: isProduction ? 'none' : 'lax',
       maxAge: 15 * 60 * 1000,
     });
 
     response.cookie('refresh_token', result.refresh_token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'none',
+      secure: isProduction,
+      sameSite: isProduction ? 'none' : 'lax',
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -143,16 +145,18 @@ export class AuthController {
 
     await this.authService.logout(userId);
 
+    const isProduction = process.env.NODE_ENV === 'production';
+
     response.clearCookie('access_token', {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'none',
+      secure: isProduction,
+      sameSite: isProduction ? 'none' : 'lax',
     });
 
     response.clearCookie('refresh_token', {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'none',
+      secure: isProduction,
+      sameSite: isProduction ? 'none' : 'lax',
     });
 
     return {
@@ -160,24 +164,28 @@ export class AuthController {
     };
   }
 
-  @Get('me')
-@UseGuards(JwtAuthGuard)
-@ApiBearerAuth()
-@ApiOperation({
-  summary: 'Get current authenticated user',
-})
-@ApiOkResponse({
-  description: 'Current user returned successfully',
-})
-@ApiUnauthorizedResponse({
-  description: 'Authentication required',
-})
-async getMe(@Req() request: Request) {
-  const user = request.user as {
-    userId: string;
-    email: string;
-  };
+  // =========================
+  // CURRENT USER
+  // =========================
 
-  return this.authService.getCurrentUser(user.userId);
-}
+  @Get('me')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Get current authenticated user',
+  })
+  @ApiOkResponse({
+    description: 'Current user returned successfully',
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Authentication required',
+  })
+  async getMe(@Req() request: Request) {
+    const user = request.user as {
+      userId: string;
+      email: string;
+    };
+
+    return this.authService.getCurrentUser(user.userId);
+  }
 }
