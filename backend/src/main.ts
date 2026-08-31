@@ -7,10 +7,14 @@ import cookieParser from 'cookie-parser';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  const frontendUrl =
+    process.env.FRONTEND_URL ||
+    'https://fullstack-user-management-ten.vercel.app';
+
   app.enableCors({
-  origin: 'https://fullstack-user-management-ten.vercel.app',
-  credentials: true,
-});
+    origin: frontendUrl,
+    credentials: true,
+  });
 
   app.use(cookieParser());
 

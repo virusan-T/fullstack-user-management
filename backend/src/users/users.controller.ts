@@ -140,16 +140,20 @@ async removeUser(
     req.user.userId,
   );
 
+  const isProduction = process.env.NODE_ENV === 'production';
+
   // Clear authentication cookies after
   // successfully deleting the logged-in user's account.
   response.clearCookie('access_token', {
     httpOnly: true,
-    sameSite: 'lax',
+    secure: isProduction,
+    sameSite: isProduction ? 'none' : 'lax',
   });
 
   response.clearCookie('refresh_token', {
     httpOnly: true,
-    sameSite: 'lax',
+    secure: isProduction,
+    sameSite: isProduction ? 'none' : 'lax',
   });
 
   return result;

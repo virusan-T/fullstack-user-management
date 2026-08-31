@@ -3,6 +3,7 @@
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { API_URL, saveTokens } from "../lib/auth";
 
 
 function MailIcon() {
@@ -56,7 +57,7 @@ export default function LoginPage() {
     setError("");
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
+      const response = await fetch(`${API_URL}/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -74,8 +75,7 @@ export default function LoginPage() {
         throw new Error(data.message || "Invalid email or password");
       }
 
-      // JWT tokens are stored in HTTP-only cookies
-      // No localStorage is required.
+      saveTokens(data);
 
       router.replace("/dashboard");
     } catch (err) {
@@ -191,4 +191,3 @@ export default function LoginPage() {
     </main>
   );
 }
-

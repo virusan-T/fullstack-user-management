@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+import { apiFetch, clearTokens } from "../../lib/auth";
 
 interface User {
   _id: string;
@@ -99,12 +98,12 @@ export default function DashboardPage() {
       setLoading(true);
       setError("");
 
-      const response = await fetch(`${API_URL}/auth/me`, {
+      const response = await apiFetch("/auth/me", {
         method: "GET",
-        credentials: "include",
       });
 
       if (!response.ok) {
+        clearTokens();
         router.push("/");
         return;
       }
@@ -132,9 +131,8 @@ export default function DashboardPage() {
       setUsersLoading(true);
       setUsersError("");
 
-      const response = await fetch(`${API_URL}/users`, {
+      const response = await apiFetch("/users", {
         method: "GET",
-        credentials: "include",
       });
 
       const data = await response.json();
@@ -164,8 +162,13 @@ export default function DashboardPage() {
   // =========================
 
   useEffect(() => {
-    fetchUser();
-    fetchUsers();
+    void Promise.resolve().then(() => {
+      fetchUser();
+      fetchUsers();
+    });
+
+    // The load functions are intentionally run once when the dashboard mounts.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // =========================
@@ -197,9 +200,8 @@ export default function DashboardPage() {
       setMessage("");
       setError("");
 
-      const response = await fetch(`${API_URL}/users/${user._id}`, {
+      const response = await apiFetch(`/users/${user._id}`, {
         method: "PATCH",
-        credentials: "include",
         headers: {
           "Content-Type": "application/json",
         },
@@ -263,15 +265,15 @@ export default function DashboardPage() {
       setLoggingOut(true);
       setError("");
 
-      const response = await fetch(`${API_URL}/auth/logout`, {
+      const response = await apiFetch("/auth/logout", {
         method: "POST",
-        credentials: "include",
       });
 
       if (!response.ok) {
         throw new Error("Logout failed");
       }
 
+      clearTokens();
       router.push("/");
     } catch (err) {
       console.error(err);
@@ -302,9 +304,8 @@ export default function DashboardPage() {
       setError("");
       setMessage("");
 
-      const response = await fetch(`${API_URL}/users/${user._id}`, {
+      const response = await apiFetch(`/users/${user._id}`, {
         method: "DELETE",
-        credentials: "include",
       });
 
       const data = await response.json();
@@ -319,6 +320,7 @@ export default function DashboardPage() {
 
       // Account deleted.
       // Go back to login page.
+      clearTokens();
       router.push("/");
     } catch (err) {
       console.error(err);

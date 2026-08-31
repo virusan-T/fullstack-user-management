@@ -69,6 +69,8 @@ export class AuthController {
 
     return {
       message: 'Login successful',
+      access_token: result.access_token,
+      refresh_token: result.refresh_token,
     };
   }
 
@@ -90,10 +92,12 @@ export class AuthController {
   })
   async refresh(
     @Req() request: Request,
+    @Body('refresh_token') refreshTokenFromBody: string | undefined,
     @Res({ passthrough: true }) response: Response,
   ) {
     const refreshToken =
-      (request as any).cookies?.refresh_token;
+      (request as any).cookies?.refresh_token ||
+      refreshTokenFromBody;
 
     const result =
       await this.authService.refreshToken(refreshToken);
@@ -116,6 +120,8 @@ export class AuthController {
 
     return {
       message: 'Tokens refreshed successfully',
+      access_token: result.access_token,
+      refresh_token: result.refresh_token,
     };
   }
 
